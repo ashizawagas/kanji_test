@@ -1,0 +1,1954 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>小学校漢字テストアプリ - 完全版</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(45deg, #4facfe 0%, #00f2fe 100%);
+            padding: 30px;
+            text-align: center;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .grade-selector {
+            margin: 15px 0;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .grade-btn {
+            background: rgba(255,255,255,0.2);
+            border: 2px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+            backdrop-filter: blur(10px);
+        }
+
+        .grade-btn:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateY(-2px);
+        }
+
+        .grade-btn.active {
+            background: rgba(255,255,255,0.4);
+            border-color: rgba(255,255,255,0.8);
+            box-shadow: 0 4px 15px rgba(255,255,255,0.3);
+        }
+
+        .score-bar {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 15px;
+        }
+
+        .score-item {
+            background: rgba(255,255,255,0.2);
+            padding: 10px 20px;
+            border-radius: 25px;
+            backdrop-filter: blur(10px);
+            font-weight: bold;
+        }
+
+        .init-status {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 10px;
+            font-size: 0.9em;
+        }
+
+        .init-loading {
+            background: rgba(255,255,255,0.2);
+            color: white;
+        }
+
+        .init-ready {
+            background: rgba(76, 175, 80, 0.3);
+            color: #e8f5e8;
+        }
+
+        .init-error {
+            background: rgba(244, 67, 54, 0.3);
+            color: #ffebee;
+        }
+
+        .question-section {
+            padding: 40px;
+            text-align: center;
+            background: #f8f9ff;
+        }
+
+        .question-title {
+            font-size: 1.3em;
+            margin-bottom: 20px;
+            color: #555;
+        }
+
+        .grade-info {
+            font-size: 1em;
+            color: #888;
+            margin-bottom: 15px;
+        }
+
+        .reading {
+            font-size: 3em;
+            font-weight: bold;
+            color: #4facfe;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .meaning {
+            font-size: 1.1em;
+            color: #777;
+            margin-bottom: 20px;
+        }
+
+        .canvas-section {
+            padding: 40px;
+            background: white;
+        }
+
+        .canvas-title {
+            text-align: center;
+            font-size: 1.2em;
+            margin-bottom: 10px;
+            color: #555;
+        }
+
+        .canvas-subtitle {
+            text-align: center;
+            font-size: 0.9em;
+            color: #888;
+            margin-bottom: 30px;
+        }
+
+        .canvas-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+
+        .canvas-wrapper {
+            position: relative;
+            border: 4px solid #e0e0e0;
+            border-radius: 15px;
+            padding: 10px;
+            background: #fafafa;
+            box-shadow: inset 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        #drawingCanvas {
+            border: 2px dashed #ccc;
+            border-radius: 10px;
+            cursor: crosshair;
+            background: white;
+            touch-action: none;
+        }
+
+        .result-section {
+            text-align: center;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 15px;
+            animation: fadeIn 0.5s;
+        }
+
+        .result-correct {
+            background: linear-gradient(45deg, #4caf50, #8bc34a);
+            color: white;
+        }
+
+        .result-incorrect {
+            background: linear-gradient(45deg, #f44336, #ff9800);
+            color: white;
+        }
+
+        .result-feedback {
+            font-size: 1.3em;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .result-answer {
+            font-size: 1.5em;
+            margin-top: 10px;
+        }
+
+        .processing-section {
+            text-align: center;
+            padding: 20px;
+            background: linear-gradient(45deg, #2196f3, #21cbf3);
+            color: white;
+            border-radius: 15px;
+            margin-bottom: 20px;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 25px;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-clear {
+            background: linear-gradient(45deg, #9e9e9e, #607d8b);
+            color: white;
+        }
+
+        .btn-check {
+            background: linear-gradient(45deg, #2196f3, #21cbf3);
+            color: white;
+        }
+
+        .btn-next {
+            background: linear-gradient(45deg, #4caf50, #8bc34a);
+            color: white;
+        }
+
+        .btn-reset {
+            background: linear-gradient(45deg, #f44336, #ff9800);
+            color: white;
+            margin-top: 20px;
+        }
+
+        .btn-grade {
+            background: linear-gradient(45deg, #9c27b0, #e91e63);
+            color: white;
+            margin-top: 20px;
+        }
+
+        .tips {
+            background: linear-gradient(45deg, #fff3e0, #ffecb3);
+            border: 1px solid #ffcc02;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 40px;
+        }
+
+        .tips h4 {
+            color: #f57c00;
+            margin-bottom: 10px;
+        }
+
+        .tips ul {
+            list-style: none;
+            color: #e65100;
+        }
+
+        .tips li {
+            margin: 5px 0;
+        }
+
+        .tips li::before {
+            content: "✓ ";
+            color: #4caf50;
+            font-weight: bold;
+        }
+
+        .final-score {
+            text-align: center;
+            padding: 30px;
+            background: linear-gradient(45deg, #4caf50, #8bc34a);
+            color: white;
+            border-radius: 15px;
+            margin: 20px 40px;
+            font-size: 1.2em;
+        }
+
+        .grade-selection {
+            text-align: center;
+            padding: 40px;
+            background: #f8f9ff;
+        }
+
+        .grade-selection h2 {
+            color: #555;
+            margin-bottom: 30px;
+            font-size: 2em;
+        }
+
+        .grade-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .grade-card {
+            background: linear-gradient(45deg, #4facfe, #00f2fe);
+            color: white;
+            padding: 30px 20px;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .grade-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        }
+
+        .grade-card h3 {
+            font-size: 1.5em;
+            margin-bottom: 10px;
+        }
+
+        .grade-card p {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+
+        .stats-info {
+            background: rgba(255,255,255,0.1);
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            font-size: 0.9em;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                margin: 10px;
+                border-radius: 15px;
+            }
+            
+            .header {
+                padding: 20px;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .reading {
+                font-size: 2.5em;
+            }
+            
+            .canvas-section, .question-section {
+                padding: 20px;
+            }
+            
+            #drawingCanvas {
+                width: 300px;
+                height: 300px;
+            }
+
+            .grade-selector {
+                gap: 5px;
+            }
+
+            .grade-btn {
+                padding: 6px 12px;
+                font-size: 0.9em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 学年選択画面 -->
+        <div id="gradeSelectionScreen" class="grade-selection">
+            <h2>📚 学年を選択してください</h2>
+            <div class="grade-grid">
+                <div class="grade-card" onclick="selectGrade(1)">
+                    <h3>1年生</h3>
+                    <p>80字の基本漢字</p>
+                </div>
+                <div class="grade-card" onclick="selectGrade(2)">
+                    <h3>2年生</h3>
+                    <p>160字の漢字</p>
+                </div>
+                <div class="grade-card" onclick="selectGrade(3)">
+                    <h3>3年生</h3>
+                    <p>200字の漢字</p>
+                </div>
+                <div class="grade-card" onclick="selectGrade(4)">
+                    <h3>4年生</h3>
+                    <p>202字の漢字</p>
+                </div>
+                <div class="grade-card" onclick="selectGrade(5)">
+                    <h3>5年生</h3>
+                    <p>193字の漢字</p>
+                </div>
+                <div class="grade-card" onclick="selectGrade(6)">
+                    <h3>6年生</h3>
+                    <p>191字の漢字</p>
+                </div>
+                <div class="grade-card" onclick="selectGrade(0)">
+                    <h3>全学年</h3>
+                    <p>1,026字すべて</p>
+                </div>
+            </div>
+            <div class="stats-info">
+                <strong>📊 収録漢字数: 1,026字</strong><br>
+                文部科学省学習指導要領に基づく小学校で習うすべての漢字を収録
+            </div>
+        </div>
+
+        <!-- メインゲーム画面 -->
+        <div id="gameScreen" style="display: none;">
+            <!-- ヘッダー -->
+            <div class="header">
+                <h1>🈯 小学校漢字テストアプリ</h1>
+                <div class="grade-selector">
+                    <button class="grade-btn" onclick="selectGrade(1)">1年</button>
+                    <button class="grade-btn" onclick="selectGrade(2)">2年</button>
+                    <button class="grade-btn" onclick="selectGrade(3)">3年</button>
+                    <button class="grade-btn" onclick="selectGrade(4)">4年</button>
+                    <button class="grade-btn" onclick="selectGrade(5)">5年</button>
+                    <button class="grade-btn" onclick="selectGrade(6)">6年</button>
+                    <button class="grade-btn" onclick="selectGrade(0)">全学年</button>
+                </div>
+                <div class="score-bar">
+                    <div class="score-item">
+                        問題 <span id="currentQuestion">1</span>/<span id="totalQuestions">10</span>
+                    </div>
+                    <div class="score-item">
+                        正解 <span id="currentScore">0</span>問
+                    </div>
+                </div>
+                <div id="initStatus" class="init-status" style="display: none;"></div>
+            </div>
+
+            <!-- 問題セクション -->
+            <div class="question-section">
+                <div class="question-title">次の読みの漢字を書いてください</div>
+                <div class="grade-info" id="gradeInfo">小学校1年生の漢字</div>
+                <div class="reading" id="questionReading">やま</div>
+                <div class="meaning" id="questionMeaning">意味: 山</div>
+            </div>
+
+            <!-- 手書きセクション -->
+            <div class="canvas-section">
+                <div class="canvas-title">ここに漢字を書いてください</div>
+                <div class="canvas-subtitle">画面中央に大きく、太く書いてください</div>
+                
+                <div class="canvas-container">
+                    <div class="canvas-wrapper">
+                        <canvas id="drawingCanvas" width="400" height="400"></canvas>
+                    </div>
+                </div>
+
+                <!-- 処理中表示 -->
+                <div id="processingSection" class="processing-section" style="display: none;">
+                    <div class="spinner"></div>
+                    <span>文字を認識中...</span>
+                </div>
+
+                <!-- 結果表示 -->
+                <div id="resultSection" class="result-section" style="display: none;">
+                    <div id="resultFeedback" class="result-feedback"></div>
+                    <div id="resultAnswer" class="result-answer"></div>
+                </div>
+
+                <!-- ボタン -->
+                <div class="buttons">
+                    <button id="clearBtn" class="btn btn-clear">
+                        🔄 クリア
+                    </button>
+                    <button id="checkBtn" class="btn btn-check">
+                        ✓ 判定
+                    </button>
+                    <button id="nextBtn" class="btn btn-next" style="display: none;">
+                        ➡️ 次へ
+                    </button>
+                </div>
+            </div>
+
+            <!-- 使用説明 -->
+            <div class="tips">
+                <h4>📝 書き方のコツ</h4>
+                <ul>
+                    <li>画面中央に大きく書いてください</li>
+                    <li>線は太く、はっきりと書いてください</li>
+                    <li>画数や文字の形を正確に書いてください</li>
+                    <li>一文字ずつ書いてから判定してください</li>
+                </ul>
+            </div>
+
+            <!-- ボタン群 -->
+            <div style="text-align: center; padding: 20px;">
+                <button id="resetBtn" class="btn btn-reset">
+                    🔄 テストをリセット
+                </button>
+                <button id="gradeSelectBtn" class="btn btn-grade">
+                    📚 学年選択に戻る
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tesseract.js CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/4.1.1/tesseract.min.js"></script>
+
+    <script>
+        // グローバル変数
+        let canvas, ctx;
+        let isDrawing = false;
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let tesseractWorker = null;
+        let ocrReady = false;
+        let currentGrade = 1;
+        let currentQuestions = [];
+
+        // 小学校で習う漢字すべて（1,026字）
+        const kanjiData = {
+            1: [
+                // 1年生（80字）
+                { reading: 'いち', kanji: '一', meaning: '一つ' },
+                { reading: 'に', kanji: '二', meaning: '二つ' },
+                { reading: 'さん', kanji: '三', meaning: '三つ' },
+                { reading: 'よん', kanji: '四', meaning: '四つ' },
+                { reading: 'ご', kanji: '五', meaning: '五つ' },
+                { reading: 'ろく', kanji: '六', meaning: '六つ' },
+                { reading: 'なな', kanji: '七', meaning: '七つ' },
+                { reading: 'はち', kanji: '八', meaning: '八つ' },
+                { reading: 'きゅう', kanji: '九', meaning: '九つ' },
+                { reading: 'じゅう', kanji: '十', meaning: '十' },
+                { reading: 'ひゃく', kanji: '百', meaning: '百' },
+                { reading: 'せん', kanji: '千', meaning: '千' },
+                { reading: 'まん', kanji: '万', meaning: '万' },
+                { reading: 'えん', kanji: '円', meaning: '円' },
+                { reading: 'やま', kanji: '山', meaning: '山' },
+                { reading: 'かわ', kanji: '川', meaning: '川' },
+                { reading: 'みず', kanji: '水', meaning: '水' },
+                { reading: 'ひ', kanji: '火', meaning: '火' },
+                { reading: 'つち', kanji: '土', meaning: '土' },
+                { reading: 'き', kanji: '木', meaning: '木' },
+                { reading: 'きん', kanji: '金', meaning: '金' },
+                { reading: 'ひと', kanji: '人', meaning: '人' },
+                { reading: 'おおきい', kanji: '大', meaning: '大きい' },
+                { reading: 'ちいさい', kanji: '小', meaning: '小さい' },
+                { reading: 'なか', kanji: '中', meaning: '中' },
+                { reading: 'にち', kanji: '日', meaning: '日' },
+                { reading: 'つき', kanji: '月', meaning: '月' },
+                { reading: 'ねん', kanji: '年', meaning: '年' },
+                { reading: 'じ', kanji: '時', meaning: '時間' },
+                { reading: 'ぶん', kanji: '分', meaning: '分' },
+                { reading: 'あめ', kanji: '雨', meaning: '雨' },
+                { reading: 'でんき', kanji: '電', meaning: '電気' },
+                { reading: 'くるま', kanji: '車', meaning: '車' },
+                { reading: 'がっこう', kanji: '学', meaning: '学ぶ' },
+                { reading: 'こう', kanji: '校', meaning: '学校' },
+                { reading: 'せんせい', kanji: '先', meaning: '先生' },
+                { reading: 'せい', kanji: '生', meaning: '生きる' },
+                { reading: 'ほん', kanji: '本', meaning: '本' },
+                { reading: 'み', kanji: '見', meaning: '見る' },
+                { reading: 'き', kanji: '聞', meaning: '聞く' },
+                { reading: 'い', kanji: '行', meaning: '行く' },
+                { reading: 'く', kanji: '来', meaning: '来る' },
+                { reading: 'で', kanji: '出', meaning: '出る' },
+                { reading: 'はい', kanji: '入', meaning: '入る' },
+                { reading: 'た', kanji: '立', meaning: '立つ' },
+                { reading: 'やす', kanji: '休', meaning: '休む' },
+                { reading: 'はな', kanji: '花', meaning: '花' },
+                { reading: 'くさ', kanji: '草', meaning: '草' },
+                { reading: 'いぬ', kanji: '犬', meaning: '犬' },
+                { reading: 'ねこ', kanji: '猫', meaning: '猫' },
+                { reading: 'とり', kanji: '鳥', meaning: '鳥' },
+                { reading: 'うし', kanji: '牛', meaning: '牛' },
+                { reading: 'うま', kanji: '馬', meaning: '馬' },
+                { reading: 'さかな', kanji: '魚', meaning: '魚' },
+                { reading: 'むし', kanji: '虫', meaning: '虫' },
+                { reading: 'て', kanji: '手', meaning: '手' },
+                { reading: 'あし', kanji: '足', meaning: '足' },
+                { reading: 'め', kanji: '目', meaning: '目' },
+                { reading: 'みみ', kanji: '耳', meaning: '耳' },
+                { reading: 'くち', kanji: '口', meaning: '口' },
+                { reading: 'はな', kanji: '鼻', meaning: '鼻' },
+                { reading: 'あたま', kanji: '頭', meaning: '頭' },
+                { reading: 'かお', kanji: '顔', meaning: '顔' },
+                { reading: 'いえ', kanji: '家', meaning: '家' },
+                { reading: 'もん', kanji: '門', meaning: '門' },
+                { reading: 'みち', kanji: '道', meaning: '道' },
+                { reading: 'まち', kanji: '町', meaning: '町' },
+                { reading: 'むら', kanji: '村', meaning: '村' },
+                { reading: 'みせ', kanji: '店', meaning: '店' },
+                { reading: 'いし', kanji: '石', meaning: '石' },
+                { reading: 'すな', kanji: '砂', meaning: '砂' },
+                { reading: 'かぜ', kanji: '風', meaning: '風' },
+                { reading: 'ゆき', kanji: '雪', meaning: '雪' },
+                { reading: 'くも', kanji: '雲', meaning: '雲' },
+                { reading: 'そら', kanji: '空', meaning: '空' },
+                { reading: 'うみ', kanji: '海', meaning: '海' },
+                { reading: 'いけ', kanji: '池', meaning: '池' },
+                { reading: 'はやし', kanji: '林', meaning: '林' },
+                { reading: 'もり', kanji: '森', meaning: '森' },
+                { reading: 'た', kanji: '田', meaning: '田んぼ' },
+                { reading: 'はたけ', kanji: '畑', meaning: '畑' },
+                { reading: 'はら', kanji: '原', meaning: '原っぱ' },
+                { reading: 'やま', kanji: '山', meaning: '山' },
+                { reading: 'おか', kanji: '岡', meaning: '丘' },
+                { reading: 'しま', kanji: '島', meaning: '島' }
+            ],
+            2: [
+                // 2年生（160字）
+                { reading: 'あき', kanji: '秋', meaning: '秋' },
+                { reading: 'あさ', kanji: '朝', meaning: '朝' },
+                { reading: 'あつい', kanji: '暑', meaning: '暑い' },
+                { reading: 'あに', kanji: '兄', meaning: '兄' },
+                { reading: 'あね', kanji: '姉', meaning: '姉' },
+                { reading: 'いもうと', kanji: '妹', meaning: '妹' },
+                { reading: 'おとうと', kanji: '弟', meaning: '弟' },
+                { reading: 'おや', kanji: '親', meaning: '親' },
+                { reading: 'かぞく', kanji: '家', meaning: '家族' },
+                { reading: 'こども', kanji: '子', meaning: '子供' },
+                { reading: 'おとこ', kanji: '男', meaning: '男' },
+                { reading: 'おんな', kanji: '女', meaning: '女' },
+                { reading: 'ともだち', kanji: '友', meaning: '友達' },
+                { reading: 'なかま', kanji: '仲', meaning: '仲間' },
+                { reading: 'みんな', kanji: '皆', meaning: 'みんな' },
+                { reading: 'じぶん', kanji: '自', meaning: '自分' },
+                { reading: 'たにん', kanji: '他', meaning: '他人' },
+                { reading: 'ひとり', kanji: '一', meaning: '一人' },
+                { reading: 'ふたり', kanji: '二', meaning: '二人' },
+                { reading: 'さんにん', kanji: '三', meaning: '三人' },
+                { reading: 'よにん', kanji: '四', meaning: '四人' },
+                { reading: 'ごにん', kanji: '五', meaning: '五人' },
+                { reading: 'ろくにん', kanji: '六', meaning: '六人' },
+                { reading: 'しちにん', kanji: '七', meaning: '七人' },
+                { reading: 'はちにん', kanji: '八', meaning: '八人' },
+                { reading: 'きゅうにん', kanji: '九', meaning: '九人' },
+                { reading: 'じゅうにん', kanji: '十', meaning: '十人' },
+                { reading: 'なまえ', kanji: '名', meaning: '名前' },
+                { reading: 'まえ', kanji: '前', meaning: '前' },
+                { reading: 'うしろ', kanji: '後', meaning: '後ろ' },
+                { reading: 'みぎ', kanji: '右', meaning: '右' },
+                { reading: 'ひだり', kanji: '左', meaning: '左' },
+                { reading: 'うえ', kanji: '上', meaning: '上' },
+                { reading: 'した', kanji: '下', meaning: '下' },
+                { reading: 'そと', kanji: '外', meaning: '外' },
+                { reading: 'なか', kanji: '内', meaning: '内' },
+                { reading: 'ちか', kanji: '近', meaning: '近い' },
+                { reading: 'とお', kanji: '遠', meaning: '遠い' },
+                { reading: 'たか', kanji: '高', meaning: '高い' },
+                { reading: 'ひく', kanji: '低', meaning: '低い' },
+                { reading: 'なが', kanji: '長', meaning: '長い' },
+                { reading: 'みじか', kanji: '短', meaning: '短い' },
+                { reading: 'ひろ', kanji: '広', meaning: '広い' },
+                { reading: 'せま', kanji: '狭', meaning: '狭い' },
+                { reading: 'あたら', kanji: '新', meaning: '新しい' },
+                { reading: 'ふる', kanji: '古', meaning: '古い' },
+                { reading: 'わか', kanji: '若', meaning: '若い' },
+                { reading: 'つよ', kanji: '強', meaning: '強い' },
+                { reading: 'よわ', kanji: '弱', meaning: '弱い' },
+                { reading: 'はや', kanji: '早', meaning: '早い' },
+                { reading: 'おそ', kanji: '遅', meaning: '遅い' },
+                { reading: 'あか', kanji: '赤', meaning: '赤' },
+                { reading: 'あお', kanji: '青', meaning: '青' },
+                { reading: 'しろ', kanji: '白', meaning: '白' },
+                { reading: 'くろ', kanji: '黒', meaning: '黒' },
+                { reading: 'きいろ', kanji: '黄', meaning: '黄色' },
+                { reading: 'みどり', kanji: '緑', meaning: '緑' },
+                { reading: 'ちゃいろ', kanji: '茶', meaning: '茶色' },
+                { reading: 'いろ', kanji: '色', meaning: '色' },
+                { reading: 'ひかり', kanji: '光', meaning: '光' },
+                { reading: 'かげ', kanji: '影', meaning: '影' },
+                { reading: 'おと', kanji: '音', meaning: '音' },
+                { reading: 'こえ', kanji: '声', meaning: '声' },
+                { reading: 'はなし', kanji: '話', meaning: '話' },
+                { reading: 'ことば', kanji: '言', meaning: '言葉' },
+                { reading: 'よ', kanji: '読', meaning: '読む' },
+                { reading: 'か', kanji: '書', meaning: '書く' },
+                { reading: 'おし', kanji: '教', meaning: '教える' },
+                { reading: 'なら', kanji: '習', meaning: '習う' },
+                { reading: 'べんきょう', kanji: '勉', meaning: '勉強' },
+                { reading: 'きょう', kanji: '強', meaning: '勉強' },
+                { reading: 'しゅくだい', kanji: '宿', meaning: '宿題' },
+                { reading: 'だい', kanji: '題', meaning: '題' },
+                { reading: 'もんだい', kanji: '問', meaning: '問題' },
+                { reading: 'こた', kanji: '答', meaning: '答え' },
+                { reading: 'しつもん', kanji: '質', meaning: '質問' },
+                { reading: 'もん', kanji: '問', meaning: '問う' },
+                { reading: 'かんが', kanji: '考', meaning: '考える' },
+                { reading: 'おも', kanji: '思', meaning: '思う' },
+                { reading: 'し', kanji: '知', meaning: '知る' },
+                { reading: 'わか', kanji: '分', meaning: '分かる' },
+                { reading: 'おぼ', kanji: '覚', meaning: '覚える' },
+                { reading: 'わす', kanji: '忘', meaning: '忘れる' },
+                { reading: 'つく', kanji: '作', meaning: '作る' },
+                { reading: 'つか', kanji: '使', meaning: '使う' },
+                { reading: 'はたら', kanji: '働', meaning: '働く' },
+                { reading: 'しごと', kanji: '仕', meaning: '仕事' },
+                { reading: 'こと', kanji: '事', meaning: '事' },
+                { reading: 'もの', kanji: '物', meaning: '物' },
+                { reading: 'ば', kanji: '場', meaning: '場所' },
+                { reading: 'しょ', kanji: '所', meaning: '所' },
+                { reading: 'ところ', kanji: '所', meaning: 'ところ' },
+                { reading: 'とき', kanji: '時', meaning: '時' },
+                { reading: 'ひる', kanji: '昼', meaning: '昼' },
+                { reading: 'よる', kanji: '夜', meaning: '夜' },
+                { reading: 'ばん', kanji: '晩', meaning: '晩' },
+                { reading: 'はる', kanji: '春', meaning: '春' },
+                { reading: 'なつ', kanji: '夏', meaning: '夏' },
+                { reading: 'ふゆ', kanji: '冬', meaning: '冬' },
+                { reading: 'さむ', kanji: '寒', meaning: '寒い' },
+                { reading: 'あたた', kanji: '暖', meaning: '暖かい' },
+                { reading: 'すず', kanji: '涼', meaning: '涼しい' },
+                { reading: 'てんき', kanji: '天', meaning: '天気' },
+                { reading: 'き', kanji: '気', meaning: '気' },
+                { reading: 'はれ', kanji: '晴', meaning: '晴れ' },
+                { reading: 'くも', kanji: '曇', meaning: '曇り' },
+                { reading: 'たべ', kanji: '食', meaning: '食べる' },
+                { reading: 'の', kanji: '飲', meaning: '飲む' },
+                { reading: 'あじ', kanji: '味', meaning: '味' },
+                { reading: 'あま', kanji: '甘', meaning: '甘い' },
+                { reading: 'から', kanji: '辛', meaning: '辛い' },
+                { reading: 'しお', kanji: '塩', meaning: '塩' },
+                { reading: 'さとう', kanji: '砂', meaning: '砂糖' },
+                { reading: 'とう', kanji: '糖', meaning: '糖' },
+                { reading: 'みず', kanji: '水', meaning: '水' },
+                { reading: 'ゆ', kanji: '湯', meaning: 'お湯' },
+                { reading: 'こおり', kanji: '氷', meaning: '氷' },
+                { reading: 'ちゃ', kanji: '茶', meaning: 'お茶' },
+                { reading: 'みるく', kanji: '乳', meaning: '牛乳' },
+                { reading: 'にゅう', kanji: '牛', meaning: '牛乳' },
+                { reading: 'たまご', kanji: '卵', meaning: '卵' },
+                { reading: 'にく', kanji: '肉', meaning: '肉' },
+                { reading: 'やさい', kanji: '野', meaning: '野菜' },
+                { reading: 'さい', kanji: '菜', meaning: '菜' },
+                { reading: 'くだもの', kanji: '果', meaning: '果物' },
+                { reading: 'もの', kanji: '物', meaning: '物' },
+                { reading: 'ごはん', kanji: '飯', meaning: 'ご飯' },
+                { reading: 'パン', kanji: '麺', meaning: 'パン' },
+                { reading: 'めん', kanji: '麺', meaning: '麺' },
+                { reading: 'りょうり', kanji: '料', meaning: '料理' },
+                { reading: 'り', kanji: '理', meaning: '理' },
+                { reading: 'あら', kanji: '洗', meaning: '洗う' },
+                { reading: 'そうじ', kanji: '掃', meaning: '掃除' },
+                { reading: 'じ', kanji: '除', meaning: '除く' },
+                { reading: 'きれい', kanji: '綺', meaning: 'きれい' },
+                { reading: 'れい', kanji: '麗', meaning: 'きれい' },
+                { reading: 'きたな', kanji: '汚', meaning: '汚い' },
+                { reading: 'あんぜん', kanji: '安', meaning: '安全' },
+                { reading: 'ぜん', kanji: '全', meaning: '全部' },
+                { reading: 'きけん', kanji: '危', meaning: '危険' },
+                { reading: 'けん', kanji: '険', meaning: '険しい' },
+                { reading: 'へいわ', kanji: '平', meaning: '平和' },
+                { reading: 'わ', kanji: '和', meaning: '和やか' },
+                { reading: 'せんそう', kanji: '戦', meaning: '戦争' },
+                { reading: 'そう', kanji: '争', meaning: '争い' },
+                { reading: 'か', kanji: '勝', meaning: '勝つ' },
+                { reading: 'ま', kanji: '負', meaning: '負ける' },
+                { reading: 'はし', kanji: '走', meaning: '走る' },
+                { reading: 'ある', kanji: '歩', meaning: '歩く' },
+                { reading: 'と', kanji: '止', meaning: '止まる' },
+                { reading: 'うご', kanji: '動', meaning: '動く' },
+                { reading: 'やす', kanji: '休', meaning: '休む' },
+                { reading: 'ねむ', kanji: '眠', meaning: '眠る' },
+                { reading: 'ね', kanji: '寝', meaning: '寝る' },
+                { reading: 'お', kanji: '起', meaning: '起きる' },
+                { reading: 'あそ', kanji: '遊', meaning: '遊ぶ' },
+                { reading: 'うた', kanji: '歌', meaning: '歌う' },
+                { reading: 'おど', kanji: '踊', meaning: '踊る' },
+                { reading: 'え', kanji: '絵', meaning: '絵' },
+                { reading: 'おんがく', kanji: '音', meaning: '音楽' },
+                { reading: 'がく', kanji: '楽', meaning: '楽しい' },
+                { reading: 'たの', kanji: '楽', meaning: '楽しい' },
+                { reading: 'かな', kanji: '悲', meaning: '悲しい' },
+                { reading: 'うれ', kanji: '嬉', meaning: '嬉しい' },
+                { reading: 'し', kanji: '嬉', meaning: '嬉しい' },
+                { reading: 'おこ', kanji: '怒', meaning: '怒る' },
+                { reading: 'わら', kanji: '笑', meaning: '笑う' },
+                { reading: 'な', kanji: '泣', meaning: '泣く' },
+                { reading: 'びっくり', kanji: '驚', meaning: '驚く' },
+                { reading: 'おどろ', kanji: '驚', meaning: '驚く' }
+            ],
+            3: [
+                // 3年生（200字）
+                { reading: 'あいだ', kanji: '間', meaning: '間' },
+                { reading: 'あつ', kanji: '集', meaning: '集める' },
+                { reading: 'あら', kanji: '荒', meaning: '荒い' },
+                { reading: 'いき', kanji: '息', meaning: '息' },
+                { reading: 'いけ', kanji: '生', meaning: '生ける' },
+                { reading: 'うで', kanji: '腕', meaning: '腕' },
+                { reading: 'うら', kanji: '裏', meaning: '裏' },
+                { reading: 'えき', kanji: '駅', meaning: '駅' },
+                { reading: 'おく', kanji: '億', meaning: '億' },
+                { reading: 'おんど', kanji: '温', meaning: '温度' },
+                { reading: 'かい', kanji: '階', meaning: '階' },
+                { reading: 'かがく', kanji: '科', meaning: '科学' },
+                { reading: 'かた', kanji: '方', meaning: '方' },
+                { reading: 'かど', kanji: '角', meaning: '角' },
+                { reading: 'かね', kanji: '鐘', meaning: '鐘' },
+                { reading: 'かべ', kanji: '壁', meaning: '壁' },
+                { reading: 'かみ', kanji: '紙', meaning: '紙' },
+                { reading: 'からだ', kanji: '体', meaning: '体' },
+                { reading: 'かわ', kanji: '皮', meaning: '皮' },
+                { reading: 'きた', kanji: '北', meaning: '北' },
+                { reading: 'きゅう', kanji: '急', meaning: '急ぐ' },
+                { reading: 'きょう', kanji: '橋', meaning: '橋' },
+                { reading: 'きょく', kanji: '曲', meaning: '曲' },
+                { reading: 'きん', kanji: '筋', meaning: '筋肉' },
+                { reading: 'くすり', kanji: '薬', meaning: '薬' },
+                { reading: 'くみ', kanji: '組', meaning: '組' },
+                { reading: 'けい', kanji: '計', meaning: '計算' },
+                { reading: 'けっか', kanji: '結', meaning: '結果' },
+                { reading: 'けん', kanji: '県', meaning: '県' },
+                { reading: 'こう', kanji: '工', meaning: '工場' },
+                { reading: 'こうじょう', kanji: '場', meaning: '工場' },
+                { reading: 'こころ', kanji: '心', meaning: '心' },
+                { reading: 'こと', kanji: '琴', meaning: '琴' },
+                { reading: 'さ', kanji: '差', meaning: '差' },
+                { reading: 'さが', kanji: '探', meaning: '探す' },
+                { reading: 'さん', kanji: '算', meaning: '算数' },
+                { reading: 'し', kanji: '死', meaning: '死ぬ' },
+                { reading: 'しお', kanji: '潮', meaning: '潮' },
+                { reading: 'しな', kanji: '品', meaning: '品物' },
+                { reading: 'しゃ', kanji: '者', meaning: '者' },
+                { reading: 'しゅ', kanji: '主', meaning: '主人' },
+                { reading: 'しゅう', kanji: '週', meaning: '週' },
+                { reading: 'しょう', kanji: '勝', meaning: '勝負' },
+                { reading: 'しょく', kanji: '植', meaning: '植物' },
+                { reading: 'しん', kanji: '深', meaning: '深い' },
+                { reading: 'す', kanji: '住', meaning: '住む' },
+                { reading: 'すう', kanji: '数', meaning: '数' },
+                { reading: 'せい', kanji: '正', meaning: '正しい' },
+                { reading: 'せき', kanji: '席', meaning: '席' },
+                { reading: 'そう', kanji: '相', meaning: '相手' },
+                { reading: 'そく', kanji: '速', meaning: '速い' },
+                { reading: 'た', kanji: '打', meaning: '打つ' },
+                { reading: 'たい', kanji: '対', meaning: '対する' },
+                { reading: 'たて', kanji: '建', meaning: '建てる' },
+                { reading: 'だん', kanji: '段', meaning: '段' },
+                { reading: 'ち', kanji: '血', meaning: '血' },
+                { reading: 'ちゅう', kanji: '注', meaning: '注意' },
+                { reading: 'つ', kanji: '次', meaning: '次' },
+                { reading: 'つづ', kanji: '続', meaning: '続く' },
+                { reading: 'つり', kanji: '釣', meaning: '釣り' },
+                { reading: 'てい', kanji: '定', meaning: '決定' },
+                { reading: 'てん', kanji: '点', meaning: '点' },
+                { reading: 'でん', kanji: '伝', meaning: '伝える' },
+                { reading: 'と', kanji: '都', meaning: '都市' },
+                { reading: 'とう', kanji: '投', meaning: '投げる' },
+                { reading: 'とく', kanji: '特', meaning: '特別' },
+                { reading: 'な', kanji: '鳴', meaning: '鳴く' },
+                { reading: 'なみ', kanji: '波', meaning: '波' },
+                { reading: 'に', kanji: '荷', meaning: '荷物' },
+                { reading: 'にし', kanji: '西', meaning: '西' },
+                { reading: 'ねん', kanji: '念', meaning: '念' },
+                { reading: 'の', kanji: '農', meaning: '農業' },
+                { reading: 'はこ', kanji: '箱', meaning: '箱' },
+                { reading: 'はた', kanji: '旗', meaning: '旗' },
+                { reading: 'はっぴょう', kanji: '発', meaning: '発表' },
+                { reading: 'ひがし', kanji: '東', meaning: '東' },
+                { reading: 'ひょう', kanji: '表', meaning: '表' },
+                { reading: 'びょう', kanji: '病', meaning: '病気' },
+                { reading: 'ふ', kanji: '負', meaning: '負ける' },
+                { reading: 'ふく', kanji: '服', meaning: '服' },
+                { reading: 'ぶつ', kanji: '物', meaning: '物' },
+                { reading: 'へい', kanji: '平', meaning: '平ら' },
+                { reading: 'へん', kanji: '変', meaning: '変わる' },
+                { reading: 'ほう', kanji: '方', meaning: '方向' },
+                { reading: 'ほか', kanji: '他', meaning: '他' },
+                { reading: 'ま', kanji: '真', meaning: '真実' },
+                { reading: 'まち', kanji: '待', meaning: '待つ' },
+                { reading: 'まる', kanji: '丸', meaning: '丸い' },
+                { reading: 'み', kanji: '味', meaning: '味' },
+                { reading: 'みなみ', kanji: '南', meaning: '南' },
+                { reading: 'む', kanji: '無', meaning: '無い' },
+                { reading: 'め', kanji: '芽', meaning: '芽' },
+                { reading: 'もと', kanji: '元', meaning: '元' },
+                { reading: 'や', kanji: '屋', meaning: '屋根' },
+                { reading: 'やく', kanji: '役', meaning: '役割' },
+                { reading: 'ゆ', kanji: '油', meaning: '油' },
+                { reading: 'よう', kanji: '用', meaning: '用事' },
+                { reading: 'よこ', kanji: '横', meaning: '横' },
+                { reading: 'らい', kanji: '来', meaning: '来年' },
+                { reading: 'りゅう', kanji: '流', meaning: '流れる' },
+                { reading: 'りょう', kanji: '量', meaning: '量' },
+                { reading: 'れい', kanji: '例', meaning: '例' },
+                { reading: 'れき', kanji: '歴', meaning: '歴史' },
+                { reading: 'ろく', kanji: '録', meaning: '記録' },
+                { reading: 'わ', kanji: '輪', meaning: '輪' },
+                { reading: 'わけ', kanji: '訳', meaning: '訳' }
+            ],
+            4: [
+                // 4年生（202字）
+                { reading: 'あい', kanji: '愛', meaning: '愛' },
+                { reading: 'あく', kanji: '悪', meaning: '悪い' },
+                { reading: 'あつ', kanji: '圧', meaning: '圧力' },
+                { reading: 'いい', kanji: '囲', meaning: '囲む' },
+                { reading: 'いん', kanji: '印', meaning: '印' },
+                { reading: 'えい', kanji: '英', meaning: '英語' },
+                { reading: 'えき', kanji: '液', meaning: '液体' },
+                { reading: 'えん', kanji: '演', meaning: '演奏' },
+                { reading: 'おう', kanji: '王', meaning: '王様' },
+                { reading: 'おく', kanji: '奥', meaning: '奥' },
+                { reading: 'おん', kanji: '恩', meaning: '恩' },
+                { reading: 'か', kanji: '加', meaning: '加える' },
+                { reading: 'かい', kanji: '改', meaning: '改める' },
+                { reading: 'かく', kanji: '各', meaning: '各々' },
+                { reading: 'かん', kanji: '関', meaning: '関係' },
+                { reading: 'き', kanji: '機', meaning: '機械' },
+                { reading: 'きょう', kanji: '共', meaning: '共通' },
+                { reading: 'きん', kanji: '禁', meaning: '禁止' },
+                { reading: 'く', kanji: '句', meaning: '句' },
+                { reading: 'くん', kanji: '君', meaning: '君' },
+                { reading: 'けい', kanji: '型', meaning: '型' },
+                { reading: 'けつ', kanji: '欠', meaning: '欠ける' },
+                { reading: 'けん', kanji: '建', meaning: '建設' },
+                { reading: 'こ', kanji: '固', meaning: '固い' },
+                { reading: 'こう', kanji: '候', meaning: '候補' },
+                { reading: 'こく', kanji: '告', meaning: '告げる' },
+                { reading: 'さい', kanji: '材', meaning: '材料' },
+                { reading: 'さつ', kanji: '札', meaning: '札' },
+                { reading: 'し', kanji: '史', meaning: '歴史' },
+                { reading: 'しき', kanji: '式', meaning: '式' },
+                { reading: 'しつ', kanji: '失', meaning: '失う' },
+                { reading: 'しゃ', kanji: '社', meaning: '会社' },
+                { reading: 'しゅ', kanji: '種', meaning: '種類' },
+                { reading: 'しょ', kanji: '初', meaning: '初め' },
+                { reading: 'しん', kanji: '信', meaning: '信じる' },
+                { reading: 'す', kanji: '巣', meaning: '巣' },
+                { reading: 'せい', kanji: '成', meaning: '成功' },
+                { reading: 'せつ', kanji: '説', meaning: '説明' },
+                { reading: 'せん', kanji: '選', meaning: '選ぶ' },
+                { reading: 'そう', kanji: '倉', meaning: '倉庫' },
+                { reading: 'そく', kanji: '束', meaning: '束' },
+                { reading: 'た', kanji: '他', meaning: '他人' },
+                { reading: 'たい', kanji: '隊', meaning: '隊' },
+                { reading: 'たん', kanji: '単', meaning: '単純' },
+                { reading: 'ち', kanji: '治', meaning: '治す' },
+                { reading: 'ちょう', kanji: '調', meaning: '調べる' },
+                { reading: 'つう', kanji: '通', meaning: '通る' },
+                { reading: 'てい', kanji: '停', meaning: '停止' },
+                { reading: 'てき', kanji: '的', meaning: '的' },
+                { reading: 'てつ', kanji: '鉄', meaning: '鉄' },
+                { reading: 'でん', kanji: '典', meaning: '辞典' },
+                { reading: 'と', kanji: '徒', meaning: '生徒' },
+                { reading: 'どう', kanji: '堂', meaning: '堂' },
+                { reading: 'とく', kanji: '得', meaning: '得る' },
+                { reading: 'な', kanji: '内', meaning: '内容' },
+                { reading: 'にん', kanji: '任', meaning: '任せる' },
+                { reading: 'ねつ', kanji: '熱', meaning: '熱い' },
+                { reading: 'のう', kanji: '能', meaning: '能力' },
+                { reading: 'は', kanji: '破', meaning: '破る' },
+                { reading: 'はい', kanji: '配', meaning: '配る' },
+                { reading: 'ばい', kanji: '倍', meaning: '倍' },
+                { reading: 'はん', kanji: '判', meaning: '判断' },
+                { reading: 'ひ', kanji: '費', meaning: '費用' },
+                { reading: 'ひつ', kanji: '必', meaning: '必要' },
+                { reading: 'ひょう', kanji: '票', meaning: '票' },
+                { reading: 'ふ', kanji: '府', meaning: '府' },
+                { reading: 'ふく', kanji: '副', meaning: '副' },
+                { reading: 'ぶん', kanji: '分', meaning: '部分' },
+                { reading: 'へい', kanji: '兵', meaning: '兵士' },
+                { reading: 'べつ', kanji: '別', meaning: '別れる' },
+                { reading: 'ほう', kanji: '法', meaning: '方法' },
+                { reading: 'ぼう', kanji: '望', meaning: '望む' },
+                { reading: 'まつ', kanji: '末', meaning: '末' },
+                { reading: 'まん', kanji: '満', meaning: '満ちる' },
+                { reading: 'み', kanji: '未', meaning: '未来' },
+                { reading: 'みん', kanji: '民', meaning: '国民' },
+                { reading: 'む', kanji: '務', meaning: '任務' },
+                { reading: 'めい', kanji: '命', meaning: '命' },
+                { reading: 'もく', kanji: '目', meaning: '目的' },
+                { reading: 'やく', kanji: '約', meaning: '約束' },
+                              { reading: 'ゆう', kanji: '勇', meaning: '勇気' },
+                { reading: 'よう', kanji: '要', meaning: '必要' },
+                { reading: 'らく', kanji: '落', meaning: '落ちる' },
+                { reading: 'りつ', kanji: '率', meaning: '確率' },
+                { reading: 'りょう', kanji: '良', meaning: '良い' },
+                { reading: 'れい', kanji: '礼', meaning: '礼儀' },
+                { reading: 'れん', kanji: '連', meaning: '連絡' },
+                { reading: 'ろん', kanji: '論', meaning: '議論' }
+            ],
+            5: [
+                // 5年生（193字）
+                { reading: 'あ', kanji: '圧', meaning: '圧力' },
+                { reading: 'い', kanji: '移', meaning: '移る' },
+                { reading: 'いん', kanji: '因', meaning: '原因' },
+                { reading: 'えい', kanji: '永', meaning: '永遠' },
+                { reading: 'えき', kanji: '営', meaning: '営業' },
+                { reading: 'えん', kanji: '衛', meaning: '衛生' },
+                { reading: 'えき', kanji: '易', meaning: '易しい' },
+                { reading: 'えき', kanji: '益', meaning: '利益' },
+                { reading: 'えん', kanji: '演', meaning: '演技' },
+                { reading: 'おう', kanji: '応', meaning: '応答' },
+                { reading: 'おう', kanji: '往', meaning: '往復' },
+                { reading: 'おん', kanji: '恩', meaning: '恩恵' },
+                { reading: 'か', kanji: '可', meaning: '可能' },
+                { reading: 'か', kanji: '仮', meaning: '仮定' },
+                { reading: 'か', kanji: '価', meaning: '価格' },
+                { reading: 'か', kanji: '河', meaning: '河川' },
+                { reading: 'かい', kanji: '過', meaning: '過去' },
+                { reading: 'かい', kanji: '快', meaning: '快適' },
+                { reading: 'かい', kanji: '解', meaning: '解決' },
+                { reading: 'かく', kanji: '格', meaning: '格好' },
+                { reading: 'かく', kanji: '確', meaning: '確認' },
+                { reading: 'かく', kanji: '額', meaning: '額' },
+                { reading: 'かん', kanji: '刊', meaning: '刊行' },
+                { reading: 'かん', kanji: '幹', meaning: '幹部' },
+                { reading: 'かん', kanji: '慣', meaning: '慣れる' },
+                { reading: 'かん', kanji: '眼', meaning: '眼' },
+                { reading: 'き', kanji: '基', meaning: '基本' },
+                { reading: 'き', kanji: '寄', meaning: '寄る' },
+                { reading: 'き', kanji: '規', meaning: '規則' },
+                { reading: 'き', kanji: '技', meaning: '技術' },
+                { reading: 'き', kanji: '義', meaning: '義務' },
+                { reading: 'き', kanji: '逆', meaning: '逆' },
+                { reading: 'きゅう', kanji: '久', meaning: '久しい' },
+                { reading: 'きゅう', kanji: '旧', meaning: '旧式' },
+                { reading: 'きゅう', kanji: '居', meaning: '居る' },
+                { reading: 'きょ', kanji: '許', meaning: '許可' },
+                { reading: 'きょう', kanji: '境', meaning: '境界' },
+                { reading: 'きょう', kanji: '均', meaning: '平均' },
+                { reading: 'きん', kanji: '禁', meaning: '禁止' },
+                { reading: 'く', kanji: '句', meaning: '文句' },
+                { reading: 'く', kanji: '群', meaning: '群れ' },
+                { reading: 'けい', kanji: '軽', meaning: '軽い' },
+                { reading: 'けい', kanji: '経', meaning: '経済' },
+                { reading: 'けつ', kanji: '潔', meaning: '潔い' },
+                { reading: 'けん', kanji: '件', meaning: '事件' },
+                { reading: 'けん', kanji: '険', meaning: '危険' },
+                { reading: 'けん', kanji: '検', meaning: '検査' },
+                { reading: 'けん', kanji: '限', meaning: '限界' },
+                { reading: 'げん', kanji: '現', meaning: '現在' },
+                { reading: 'げん', kanji: '減', meaning: '減る' },
+                { reading: 'こ', kanji: '故', meaning: '故障' },
+                { reading: 'こ', kanji: '個', meaning: '個人' },
+                { reading: 'こう', kanji: '護', meaning: '保護' },
+                { reading: 'こう', kanji: '効', meaning: '効果' },
+                { reading: 'こう', kanji: '厚', meaning: '厚い' },
+                { reading: 'こう', kanji: '耕', meaning: '耕す' },
+                { reading: 'こく', kanji: '鉱', meaning: '鉱物' },
+                { reading: 'こん', kanji: '混', meaning: '混ぜる' },
+                { reading: 'さ', kanji: '査', meaning: '検査' },
+                { reading: 'さい', kanji: '再', meaning: '再び' },
+                { reading: 'さい', kanji: '災', meaning: '災害' },
+                { reading: 'さい', kanji: '妻', meaning: '妻' },
+                { reading: 'さい', kanji: '採', meaning: '採用' },
+                { reading: 'さい', kanji: '際', meaning: '国際' },
+                { reading: 'ざい', kanji: '財', meaning: '財産' },
+                { reading: 'さく', kanji: '冊', meaning: '冊子' },
+                { reading: 'さつ', kanji: '刷', meaning: '印刷' },
+                { reading: 'さつ', kanji: '察', meaning: '観察' },
+                { reading: 'さん', kanji: '参', meaning: '参加' },
+                { reading: 'さん', kanji: '産', meaning: '生産' },
+                { reading: 'さん', kanji: '散', meaning: '散歩' },
+                { reading: 'し', kanji: '残', meaning: '残る' },
+                { reading: 'し', kanji: '士', meaning: '武士' },
+                { reading: 'し', kanji: '氏', meaning: '氏名' },
+                { reading: 'し', kanji: '試', meaning: '試験' },
+                { reading: 'し', kanji: '児', meaning: '児童' },
+                { reading: 'し', kanji: '治', meaning: '政治' },
+                { reading: 'し', kanji: '辞', meaning: '辞書' },
+                { reading: 'し', kanji: '示', meaning: '指示' },
+                { reading: 'し', kanji: '似', meaning: '似る' },
+                { reading: 'し', kanji: '識', meaning: '知識' },
+                { reading: 'し', kanji: '質', meaning: '質問' },
+                { reading: 'し', kanji: '舎', meaning: '校舎' },
+                { reading: 'し', kanji: '謝', meaning: '感謝' },
+                { reading: 'し', kanji: '授', meaning: '授業' },
+                { reading: 'し', kanji: '修', meaning: '修理' },
+                { reading: 'しゅう', kanji: '衆', meaning: '大衆' },
+                { reading: 'しゅう', kanji: '従', meaning: '従う' },
+                { reading: 'しゅう', kanji: '縦', meaning: '縦' },
+                { reading: 'しゅう', kanji: '縮', meaning: '縮む' },
+                { reading: 'しゅく', kanji: '祝', meaning: '祝う' },
+                { reading: 'じゅん', kanji: '純', meaning: '純粋' },
+                { reading: 'じゅん', kanji: '巡', meaning: '巡る' },
+                { reading: 'しょ', kanji: '処', meaning: '処理' },
+                { reading: 'しょ', kanji: '署', meaning: '署名' },
+                { reading: 'しょ', kanji: '諸', meaning: '諸君' },
+                { reading: 'しょう', kanji: '除', meaning: '除く' },
+                { reading: 'しょう', kanji: '将', meaning: '将来' },
+                { reading: 'しょう', kanji: '傷', meaning: '傷' },
+                { reading: 'しょう', kanji: '障', meaning: '障害' },
+                { reading: 'しん', kanji: '城', meaning: '城' },
+                { reading: 'しん', kanji: '針', meaning: '針' },
+                { reading: 'しん', kanji: '震', meaning: '地震' },
+                { reading: 'しん', kanji: '神', meaning: '神様' },
+                { reading: 'しん', kanji: '親', meaning: '親' },
+                { reading: 'しん', kanji: '深', meaning: '深い' },
+                { reading: 'しん', kanji: '進', meaning: '進む' },
+                { reading: 'しん', kanji: '森', meaning: '森' },
+                { reading: 'しん', kanji: '申', meaning: '申す' },
+                { reading: 'しん', kanji: '真', meaning: '真実' },
+                { reading: 'しん', kanji: '寝', meaning: '寝る' },
+                { reading: 'しん', kanji: '慎', meaning: '慎重' },
+                { reading: 'しん', kanji: '新', meaning: '新しい' },
+                { reading: 'しん', kanji: '臣', meaning: '家臣' },
+                { reading: 'しん', kanji: '芯', meaning: '芯' },
+                { reading: 'す', kanji: '図', meaning: '図書' },
+                { reading: 'す', kanji: '水', meaning: '水' },
+                { reading: 'す', kanji: '推', meaning: '推測' },
+                { reading: 'す', kanji: '寸', meaning: '寸法' },
+                { reading: 'せい', kanji: '盛', meaning: '盛る' },
+                { reading: 'せい', kanji: '精', meaning: '精神' },
+                { reading: 'せい', kanji: '製', meaning: '製造' },
+                { reading: 'せい', kanji: '誠', meaning: '誠実' },
+                { reading: 'せい', kanji: '税', meaning: '税金' },
+                { reading: 'せい', kanji: '責', meaning: '責任' },
+                { reading: 'せき', kanji: '績', meaning: '成績' },
+                { reading: 'せき', kanji: '接', meaning: '接続' },
+                { reading: 'せつ', kanji: '設', meaning: '設置' },
+                { reading: 'せつ', kanji: '舌', meaning: '舌' },
+                { reading: 'せん', kanji: '絶', meaning: '絶対' },
+                { reading: 'せん', kanji: '祖', meaning: '祖先' },
+                { reading: 'せん', kanji: '素', meaning: '素材' },
+                { reading: 'せん', kanji: '総', meaning: '総合' },
+                { reading: 'せん', kanji: '造', meaning: '製造' },
+                { reading: 'せん', kanji: '像', meaning: '像' },
+                { reading: 'せん', kanji: '増', meaning: '増加' },
+                { reading: 'せん', kanji: '則', meaning: '規則' },
+                { reading: 'せん', kanji: '測', meaning: '測定' },
+                { reading: 'せん', kanji: '属', meaning: '所属' },
+                { reading: 'せん', kanji: '率', meaning: '確率' },
+                { reading: 'せん', kanji: '損', meaning: '損失' },
+                { reading: 'た', kanji: '退', meaning: '退く' },
+                { reading: 'た', kanji: '貸', meaning: '貸す' },
+                { reading: 'た', kanji: '態', meaning: '態度' },
+                { reading: 'た', kanji: '団', meaning: '団体' },
+                { reading: 'た', kanji: '断', meaning: '断る' },
+                { reading: 'た', kanji: '築', meaning: '建築' },
+                { reading: 'た', kanji: '張', meaning: '張る' },
+                { reading: 'ちょう', kanji: '提', meaning: '提案' },
+                { reading: 'ちょう', kanji: '程', meaning: '程度' },
+                { reading: 'ちょう', kanji: '適', meaning: '適切' },
+                { reading: 'ちょう', kanji: '統', meaning: '統一' },
+                { reading: 'ちょう', kanji: '銅', meaning: '銅' },
+                { reading: 'ちょう', kanji: '導', meaning: '指導' },
+                { reading: 'ちょう', kanji: '徳', meaning: '道徳' },
+                { reading: 'ちょう', kanji: '独', meaning: '独立' },
+                { reading: 'ちょう', kanji: '任', meaning: '任務' },
+                { reading: 'ちょう', kanji: '燃', meaning: '燃える' },
+                { reading: 'ちょう', kanji: '能', meaning: '能力' },
+                { reading: 'ちょう', kanji: '破', meaning: '破壊' },
+                { reading: 'ちょう', kanji: '犯', meaning: '犯罪' },
+                { reading: 'ちょう', kanji: '判', meaning: '判断' },
+                { reading: 'ちょう', kanji: '版', meaning: '版' },
+                { reading: 'ちょう', kanji: '比', meaning: '比較' },
+                { reading: 'ちょう', kanji: '肥', meaning: '肥料' },
+                { reading: 'ちょう', kanji: '非', meaning: '非常' },
+                { reading: 'ちょう', kanji: '備', meaning: '準備' },
+                { reading: 'ちょう', kanji: '俵', meaning: '俵' },
+                { reading: 'ちょう', kanji: '評', meaning: '評価' },
+                { reading: 'ちょう', kanji: '貧', meaning: '貧乏' },
+                { reading: 'ちょう', kanji: '布', meaning: '布' },
+                { reading: 'ちょう', kanji: '富', meaning: '富' },
+                { reading: 'ちょう', kanji: '武', meaning: '武器' },
+                { reading: 'ちょう', kanji: '復', meaning: '復習' },
+                { reading: 'ちょう', kanji: '複', meaning: '複雑' },
+                { reading: 'ちょう', kanji: '仏', meaning: '仏様' },
+                { reading: 'ちょう', kanji: '編', meaning: '編集' },
+                { reading: 'ちょう', kanji: '弁', meaning: '弁当' },
+                { reading: 'ちょう', kanji: '保', meaning: '保護' },
+                { reading: 'ちょう', kanji: '墓', meaning: '墓' },
+                { reading: 'ちょう', kanji: '報', meaning: '報告' },
+                { reading: 'ちょう', kanji: '豊', meaning: '豊か' },
+                { reading: 'ちょう', kanji: '防', meaning: '防ぐ' },
+                { reading: 'ちょう', kanji: '貿', meaning: '貿易' },
+                { reading: 'ちょう', kanji: '暴', meaning: '暴力' },
+                { reading: 'ちょう', kanji: '務', meaning: '任務' },
+                { reading: 'ちょう', kanji: '夢', meaning: '夢' },
+                { reading: 'ちょう', kanji: '迷', meaning: '迷う' },
+                { reading: 'ちょう', kanji: '綿', meaning: '綿' },
+                { reading: 'ちょう', kanji: '輸', meaning: '輸送' },
+                { reading: 'ちょう', kanji: '余', meaning: '余る' },
+                { reading: 'ちょう', kanji: '預', meaning: '預ける' },
+                { reading: 'ちょう', kanji: '容', meaning: '容器' },
+                { reading: 'ちょう', kanji: '略', meaning: '省略' },
+                { reading: 'ちょう', kanji: '留', meaning: '留める' },
+                { reading: 'ちょう', kanji: '領', meaning: '領土' }
+            ],
+            6: [
+                // 6年生（191字）
+                { reading: 'い', kanji: '異', meaning: '異なる' },
+                { reading: 'い', kanji: '遺', meaning: '遺産' },
+                { reading: 'い', kanji: '域', meaning: '地域' },
+                { reading: 'い', kanji: '宇', meaning: '宇宙' },
+                { reading: 'えい', kanji: '映', meaning: '映画' },
+                { reading: 'えん', kanji: '延', meaning: '延長' },
+                { reading: 'おう', kanji: '我', meaning: '我々' },
+                { reading: 'おう', kanji: '灰', meaning: '灰' },
+                { reading: 'おう', kanji: '拡', meaning: '拡大' },
+                { reading: 'おう', kanji: '革', meaning: '革命' },
+                { reading: 'おう', kanji: '閣', meaning: '内閣' },
+                { reading: 'おう', kanji: '割', meaning: '割合' },
+                { reading: 'おう', kanji: '株', meaning: '株' },
+                { reading: 'おう', kanji: '干', meaning: '干す' },
+                { reading: 'おう', kanji: '巻', meaning: '巻く' },
+                { reading: 'おう', kanji: '看', meaning: '看護' },
+                { reading: 'おう', kanji: '簡', meaning: '簡単' },
+                { reading: 'おう', kanji: '危', meaning: '危険' },
+                { reading: 'おう', kanji: '机', meaning: '机' },
+                { reading: 'おう', kanji: '貴', meaning: '貴重' },
+                { reading: 'おう', kanji: '疑', meaning: '疑う' },
+                { reading: 'おう', kanji: '吸', meaning: '吸う' },
+                { reading: 'おう', kanji: '供', meaning: '供給' },
+                { reading: 'おう', kanji: '胸', meaning: '胸' },
+                { reading: 'おう', kanji: '郷', meaning: '故郷' },
+                { reading: 'おう', kanji: '勤', meaning: '勤務' },
+                { reading: 'おう', kanji: '筋', meaning: '筋肉' },
+                { reading: 'おう', kanji: '系', meaning: '系統' },
+                { reading: 'おう', kanji: '敬', meaning: '敬語' },
+                { reading: 'おう', kanji: '警', meaning: '警察' },
+                { reading: 'おう', kanji: '劇', meaning: '劇場' },
+                { reading: 'おう', kanji: '激', meaning: '激しい' },
+                { reading: 'おう', kanji: '穴', meaning: '穴' },
+                { reading: 'おう', kanji: '絹', meaning: '絹' },
+                { reading: 'おう', kanji: '権', meaning: '権利' },
+                { reading: 'おう', kanji: '憲', meaning: '憲法' },
+                { reading: 'おう', kanji: '源', meaning: '源' },
+                { reading: 'おう', kanji: '厳', meaning: '厳しい' },
+                { reading: 'おう', kanji: '己', meaning: '自己' },
+                { reading: 'おう', kanji: '呼', meaning: '呼ぶ' },
+                { reading: 'おう', kanji: '誤', meaning: '誤り' },
+                { reading: 'おう', kanji: '后', meaning: '皇后' },
+                { reading: 'おう', kanji: '孝', meaning: '孝行' },
+                { reading: 'おう', kanji: '皇', meaning: '皇帝' },
+                { reading: 'おう', kanji: '紅', meaning: '紅葉' },
+                { reading: 'おう', kanji: '降', meaning: '降りる' },
+                { reading: 'おう', kanji: '鋼', meaning: '鋼鉄' },
+                { reading: 'おう', kanji: '刻', meaning: '刻む' },
+                { reading: 'おう', kanji: '穀', meaning: '穀物' },
+                { reading: 'おう', kanji: '骨', meaning: '骨' },
+                { reading: 'おう', kanji: '困', meaning: '困る' },
+                { reading: 'おう', kanji: '砂', meaning: '砂漠' },
+                { reading: 'おう', kanji: '座', meaning: '座る' },
+                { reading: 'おう', kanji: '済', meaning: '経済' },
+                { reading: 'おう', kanji: '裁', meaning: '裁判' },
+                { reading: 'おう', kanji: '策', meaning: '政策' },
+                { reading: 'おう', kanji: '冊', meaning: '冊子' },
+                { reading: 'おう', kanji: '蚕', meaning: '蚕' },
+                { reading: 'おう', kanji: '至', meaning: '至急' },
+                { reading: 'おう', kanji: '私', meaning: '私' },
+                { reading: 'おう', kanji: '姿', meaning: '姿' },
+                { reading: 'おう', kanji: '視', meaning: '視線' },
+                { reading: 'おう', kanji: '詞', meaning: '詞' },
+                { reading: 'おう', kanji: '誌', meaning: '雑誌' },
+                { reading: 'おう', kanji: '磁', meaning: '磁石' },
+                { reading: 'おう', kanji: '射', meaning: '射撃' },
+                { reading: 'おう', kanji: '捨', meaning: '捨てる' },
+                { reading: 'おう', kanji: '尺', meaning: '尺度' },
+                { reading: 'おう', kanji: '若', meaning: '若い' },
+                { reading: 'おう', kanji: '樹', meaning: '樹木' },
+                { reading: 'おう', kanji: '収', meaning: '収穫' },
+                { reading: 'おう', kanji: '宗', meaning: '宗教' },
+                { reading: 'おう', kanji: '就', meaning: '就職' },
+                { reading: 'おう', kanji: '州', meaning: '州' },
+                { reading: 'おう', kanji: '修', meaning: '修理' },
+                { reading: 'おう', kanji: '愁', meaning: '愁い' },
+                { reading: 'おう', kanji: '拾', meaning: '拾う' },
+                { reading: 'おう', kanji: '洲', meaning: '大陸' },
+                { reading: 'おう', kanji: '秀', meaning: '秀才' },
+                { reading: 'おう', kanji: '秋', meaning: '秋' },
+                { reading: 'おう', kanji: '終', meaning: '終わり' },
+                { reading: 'おう', kanji: '羞', meaning: '羞恥' },
+                { reading: 'おう', kanji: '住', meaning: '住む' },
+                { reading: 'おう', kanji: '充', meaning: '充実' },
+                { reading: 'おう', kanji: '十', meaning: '十分' },
+                { reading: 'おう', kanji: '従', meaning: '従う' },
+                { reading: 'おう', kanji: '渋', meaning: '渋い' },
+                { reading: 'おう', kanji: '銃', meaning: '銃' },
+                { reading: 'おう', kanji: '獣', meaning: '獣' },
+                { reading: 'おう', kanji: '縦', meaning: '縦' },
+                { reading: 'おう', kanji: '重', meaning: '重い' },
+                { reading: 'おう', kanji: '銃', meaning: '銃' },
+                { reading: 'おう', kanji: '叔', meaning: '叔父' },
+                { reading: 'おう', kanji: '淑', meaning: '淑女' },
+                { reading: 'おう', kanji: '反', meaning: '反対' },
+                { reading: 'おう', kanji: '俊', meaning: '俊才' },
+                { reading: 'おう', kanji: '春', meaning: '春' },
+                { reading: 'おう', kanji: '瞬', meaning: '瞬間' },
+                { reading: 'おう', kanji: '旬', meaning: '旬' },
+                { reading: 'おう', kanji: '巡', meaning: '巡回' },
+                { reading: 'おう', kanji: '盾', meaning: '盾' },
+                { reading: 'おう', kanji: '准', meaning: '准教授' },
+                { reading: 'おう', kanji: '循', meaning: '循環' },
+                { reading: 'おう', kanji: '旨', meaning: '旨い' },
+                { reading: 'おう', kanji: '純', meaning: '純粋' },
+                { reading: 'おう', kanji: '処', meaning: '処理' },
+                { reading: 'おう', kanji: '署', meaning: '署名' },
+                { reading: 'おう', kanji: '諸', meaning: '諸君' },
+                { reading: 'おう', kanji: '除', meaning: '除く' },
+                { reading: 'おう', kanji: '将', meaning: '将来' },
+                { reading: 'おう', kanji: '傷', meaning: '傷' },
+                { reading: 'おう', kanji: '障', meaning: '障害' },
+                { reading: 'おう', kanji: '城', meaning: '城' },
+                { reading: 'おう', kanji: '蒸', meaning: '蒸す' },
+                { reading: 'おう', kanji: '針', meaning: '針' },
+                { reading: 'おう', kanji: '仁', meaning: '仁義' },
+                { reading: 'おう', kanji: '垂', meaning: '垂れる' },
+                { reading: 'おう', kanji: '推', meaning: '推測' },
+                { reading: 'おう', kanji: '寸', meaning: '寸法' },
+                { reading: 'おう', kanji: '盛', meaning: '盛る' },
+                { reading: 'おう', kanji: '聖', meaning: '聖人' },
+                { reading: 'おう', kanji: '誠', meaning: '誠実' },
+                { reading: 'おう', kanji: '宣', meaning: '宣言' },
+                { reading: 'おう', kanji: '専', meaning: '専門' },
+                { reading: 'おう', kanji: '泉', meaning: '泉' },
+                { reading: 'おう', kanji: '洗', meaning: '洗う' },
+                { reading: 'おう', kanji: '染', meaning: '染める' },
+                { reading: 'おう', kanji: '善', meaning: '善い' },
+                { reading: 'おう', kanji: '奏', meaning: '演奏' },
+                { reading: 'おう', kanji: '窓', meaning: '窓' },
+                { reading: 'おう', kanji: '創', meaning: '創造' },
+                { reading: 'おう', kanji: '装', meaning: '装置' },
+                { reading: 'おう', kanji: '層', meaning: '層' },
+                { reading: 'おう', kanji: '操', meaning: '操作' },
+                { reading: 'おう', kanji: '蔵', meaning: '蔵' },
+                { reading: 'おう', kanji: '臓', meaning: '内臓' },
+                { reading: 'おう', kanji: '存', meaning: '存在' },
+                { reading: 'おう', kanji: '尊', meaning: '尊敬' },
+                { reading: 'おう', kanji: '宅', meaning: '宅地' },
+                { reading: 'おう', kanji: '担', meaning: '担当' },
+                { reading: 'おう', kanji: '探', meaning: '探す' },
+                { reading: 'おう', kanji: '誕', meaning: '誕生' },
+                { reading: 'おう', kanji: '段', meaning: '段階' },
+                { reading: 'おう', kanji: '暖', meaning: '暖かい' },
+                { reading: 'おう', kanji: '値', meaning: '値段' },
+                { reading: 'おう', kanji: '宙', meaning: '宇宙' },
+                { reading: 'おう', kanji: '忠', meaning: '忠実' },
+                { reading: 'おう', kanji: '著', meaning: '著者' },
+                { reading: 'おう', kanji: '庁', meaning: '官庁' },
+                { reading: 'おう', kanji: '頂', meaning: '頂上' },
+                { reading: 'おう', kanji: '潮', meaning: '潮' },
+                { reading: 'おう', kanji: '賃', meaning: '賃金' },
+                { reading: 'おう', kanji: '痛', meaning: '痛い' },
+                { reading: 'おう', kanji: '展', meaning: '展開' },
+                { reading: 'おう', kanji: '討', meaning: '討論' },
+                { reading: 'おう', kanji: '党', meaning: '政党' },
+                { reading: 'おう', kanji: '糖', meaning: '砂糖' },
+                { reading: 'おう', kanji: '届', meaning: '届ける' },
+                { reading: 'おう', kanji: '難', meaning: '困難' },
+                { reading: 'おう', kanji: '乳', meaning: '牛乳' },
+                { reading: 'おう', kanji: '認', meaning: '認める' },
+                { reading: 'おう', kanji: '納', meaning: '納める' },
+                { reading: 'おう', kanji: '脳', meaning: '脳' },
+                { reading: 'おう', kanji: '派', meaning: '派遣' },
+                { reading: 'おう', kanji: '拝', meaning: '拝む' },
+                { reading: 'おう', kanji: '背', meaning: '背中' },
+                { reading: 'おう', kanji: '肺', meaning: '肺' },
+                { reading: 'おう', kanji: '俳', meaning: '俳句' },
+                { reading: 'おう', kanji: '班', meaning: '班' },
+                { reading: 'おう', kanji: '晩', meaning: '晩' },
+                { reading: 'おう', kanji: '否', meaning: '否定' },
+                { reading: 'おう', kanji: '批', meaning: '批判' },
+                { reading: 'おう', kanji: '秘', meaning: '秘密' },
+                { reading: 'おう', kanji: '腹', meaning: '腹' },
+                { reading: 'おう', kanji: '奮', meaning: '奮闘' },
+                { reading: 'おう', kanji: '並', meaning: '並ぶ' },
+                { reading: 'おう', kanji: '陛', meaning: '陛下' },
+                { reading: 'おう', kanji: '閉', meaning: '閉じる' },
+                { reading: 'おう', kanji: '片', meaning: '片方' },
+                { reading: 'おう', kanji: '補', meaning: '補う' },
+                { reading: 'おう', kanji: '暮', meaning: '暮らし' },
+                { reading: 'おう', kanji: '宝', meaning: '宝物' },
+                { reading: 'おう', kanji: '訪', meaning: '訪問' },
+                { reading: 'おう', kanji: '亡', meaning: '亡くなる' },
+                { reading: 'おう', kanji: '忘', meaning: '忘れる' },
+                { reading: 'おう', kanji: '棒', meaning: '棒' },
+                { reading: 'おう', kanji: '枚', meaning: '枚数' },
+                { reading: 'おう', kanji: '幕', meaning: '幕' },
+                { reading: 'おう', kanji: '密', meaning: '密度' },
+                { reading: 'おう', kanji: '盟', meaning: '同盟' },
+                { reading: 'おう', kanji: '模', meaning: '模様' },
+                { reading: 'おう', kanji: '訳', meaning: '翻訳' },
+                { reading: 'おう', kanji: '郵', meaning: '郵便' },
+                { reading: 'おう', kanji: '優', meaning: '優秀' },
+                { reading: 'おう', kanji: '幼', meaning: '幼い' },
+                { reading: 'おう', kanji: '欲', meaning: '欲望' },
+                { reading: 'おう', kanji: '翌', meaning: '翌日' },
+                { reading: 'おう', kanji: '乱', meaning: '乱れる' },
+                { reading: 'おう', kanji: '卵', meaning: '卵' },
+                { reading: 'おう', kanji: '覧', meaning: '見覧' },
+                { reading: 'おう', kanji: '裏', meaning: '裏側' },
+                { reading: 'おう', kanji: '律', meaning: '法律' },
+                { reading: 'おう', kanji: '臨', meaning: '臨時' },
+                { reading: 'おう', kanji: '朗', meaning: '朗読' },
+                { reading: 'おう', kanji: '論', meaning: '議論' }
+            ]
+        };
+
+        // DOM要素
+        const elements = {
+            canvas: null,
+            currentQuestion: null,
+            totalQuestions: null,
+            currentScore: null,
+            questionReading: null,
+            questionMeaning: null,
+            gradeInfo: null,
+            initStatus: null,
+            processingSection: null,
+            resultSection: null,
+            resultFeedback: null,
+            resultAnswer: null,
+            clearBtn: null,
+            checkBtn: null,
+            nextBtn: null,
+            resetBtn: null,
+            gradeSelectBtn: null,
+            gradeSelectionScreen: null,
+            gameScreen: null
+        };
+
+        // 初期化
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeElements();
+            initializeCanvas();
+            initializeTesseract();
+            setupEventListeners();
+        });
+
+        // DOM要素の取得
+        function initializeElements() {
+            elements.canvas = document.getElementById('drawingCanvas');
+            elements.currentQuestion = document.getElementById('currentQuestion');
+            elements.totalQuestions = document.getElementById('totalQuestions');
+            elements.currentScore = document.getElementById('currentScore');
+            elements.questionReading = document.getElementById('questionReading');
+            elements.questionMeaning = document.getElementById('questionMeaning');
+            elements.gradeInfo = document.getElementById('gradeInfo');
+            elements.initStatus = document.getElementById('initStatus');
+            elements.processingSection = document.getElementById('processingSection');
+            elements.resultSection = document.getElementById('resultSection');
+            elements.resultFeedback = document.getElementById('resultFeedback');
+            elements.resultAnswer = document.getElementById('resultAnswer');
+            elements.clearBtn = document.getElementById('clearBtn');
+            elements.checkBtn = document.getElementById('checkBtn');
+            elements.nextBtn = document.getElementById('nextBtn');
+            elements.resetBtn = document.getElementById('resetBtn');
+            elements.gradeSelectBtn = document.getElementById('gradeSelectBtn');
+            elements.gradeSelectionScreen = document.getElementById('gradeSelectionScreen');
+            elements.gameScreen = document.getElementById('gameScreen');
+
+            canvas = elements.canvas;
+            ctx = canvas.getContext('2d');
+        }
+
+        // 学年選択
+        function selectGrade(grade) {
+            currentGrade = grade;
+            
+            if (grade === 0) {
+                // 全学年の場合
+                const allKanji = Object.values(kanjiData).flat();
+                currentQuestions = shuffleArray(allKanji).slice(0, 20);
+            } else {
+                // 特定学年の場合
+                currentQuestions = shuffleArray([...kanjiData[grade]]).slice(0, 10);
+            }
+            
+            currentQuestionIndex = 0;
+            score = 0;
+            
+            // 学年ボタンのアクティブ状態更新
+            document.querySelectorAll('.grade-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            if (grade === 0) {
+                document.querySelectorAll('.grade-btn')[6].classList.add('active');
+            } else {
+                document.querySelectorAll('.grade-btn')[grade - 1].classList.add('active');
+            }
+            
+            // 画面切り替え
+            elements.gradeSelectionScreen.style.display = 'none';
+            elements.gameScreen.style.display = 'block';
+            
+            clearCanvas();
+            updateDisplay();
+            hideResult();
+            
+            // OCR文字リスト更新
+            updateOCRWhitelist();
+        }
+
+        // 学年選択画面に戻る
+        function backToGradeSelection() {
+            elements.gradeSelectionScreen.style.display = 'block';
+            elements.gameScreen.style.display = 'none';
+        }
+
+        // 配列をシャッフル
+        function shuffleArray(array) {
+            const shuffled = [...array];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+            return shuffled;
+        }
+
+        // OCR文字リスト更新
+        function updateOCRWhitelist() {
+            if (!tesseractWorker || !ocrReady) return;
+            
+            let targetKanji = '';
+            if (currentGrade === 0) {
+                // 全学年の場合
+                targetKanji = Object.values(kanjiData).flat().map(q => q.kanji).join('');
+            } else {
+                // 特定学年の場合
+                targetKanji = kanjiData[currentGrade].map(q => q.kanji).join('');
+            }
+            
+            tesseractWorker.setParameters({
+                tessedit_char_whitelist: targetKanji,
+                tessedit_pageseg_mode: Tesseract.PSM.SINGLE_CHAR,
+            });
+        }
+
+        // キャンバスの初期化
+        function initializeCanvas() {
+            ctx.strokeStyle = '#000000';
+            ctx.lineWidth = 8;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            clearCanvas();
+        }
+
+        // Tesseract.jsの初期化
+        async function initializeTesseract() {
+            try {
+                showInitStatus('OCRライブラリを初期化中...', 'loading');
+                
+                tesseractWorker = await Tesseract.createWorker({
+                    logger: m => {
+                        if (m.status === 'recognizing text') {
+                            showInitStatus(`文字認識中: ${Math.round(m.progress * 100)}%`, 'loading');
+                        }
+                    }
+                });
+
+                showInitStatus('言語データを読み込み中...', 'loading');
+                await tesseractWorker.loadLanguage('jpn+chi_sim');
+                
+                showInitStatus('OCRエンジンを初期化中...', 'loading');
+                await tesseractWorker.initialize('jpn+chi_sim');
+                
+                // 初期設定（全漢字）
+                const allKanji = Object.values(kanjiData).flat().map(q => q.kanji).join('');
+                await tesseractWorker.setParameters({
+                    tessedit_char_whitelist: allKanji,
+                    tessedit_pageseg_mode: Tesseract.PSM.SINGLE_CHAR,
+                });
+
+                ocrReady = true;
+                showInitStatus('✓ OCR準備完了', 'ready');
+                
+                setTimeout(() => {
+                    elements.initStatus.style.display = 'none';
+                }, 3000);
+
+            } catch (error) {
+                console.error('OCR初期化エラー:', error);
+                showInitStatus(`❌ OCR初期化失敗: ${error.message}`, 'error');
+            }
+        }
+
+        // 初期化状態の表示
+        function showInitStatus(message, type) {
+            elements.initStatus.textContent = message;
+            elements.initStatus.className = `init-status init-${type}`;
+            elements.initStatus.style.display = 'block';
+        }
+
+        // イベントリスナーの設定
+        function setupEventListeners() {
+            // マウスイベント
+            canvas.addEventListener('mousedown', startDrawing);
+            canvas.addEventListener('mousemove', draw);
+            canvas.addEventListener('mouseup', stopDrawing);
+            canvas.addEventListener('mouseout', stopDrawing);
+
+            // タッチイベント
+            canvas.addEventListener('touchstart', handleTouchStart);
+            canvas.addEventListener('touchmove', handleTouchMove);
+            canvas.addEventListener('touchend', handleTouchEnd);
+
+            // ボタンイベント
+            elements.clearBtn.addEventListener('click', clearCanvas);
+            elements.checkBtn.addEventListener('click', checkAnswer);
+            elements.nextBtn.addEventListener('click', nextQuestion);
+            elements.resetBtn.addEventListener('click', resetTest);
+            elements.gradeSelectBtn.addEventListener('click', backToGradeSelection);
+        }
+
+        // 描画開始
+        function startDrawing(e) {
+            isDrawing = true;
+            const coords = getCoordinates(e);
+            ctx.beginPath();
+            ctx.moveTo(coords.x, coords.y);
+        }
+
+        // 描画
+        function draw(e) {
+            if (!isDrawing) return;
+            const coords = getCoordinates(e);
+            ctx.lineTo(coords.x, coords.y);
+            ctx.stroke();
+        }
+
+        // 描画終了
+        function stopDrawing() {
+            isDrawing = false;
+        }
+
+        // 座標取得
+        function getCoordinates(e) {
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            
+            return {
+                x: (e.clientX - rect.left) * scaleX,
+                y: (e.clientY - rect.top) * scaleY
+            };
+        }
+
+        // タッチイベントハンドラ
+        function handleTouchStart(e) {
+            e.preventDefault();
+            const touch = e.touches[0];
+            const mouseEvent = {
+                clientX: touch.clientX,
+                clientY: touch.clientY
+            };
+            startDrawing(mouseEvent);
+        }
+
+        function handleTouchMove(e) {
+            e.preventDefault();
+            const touch = e.touches[0];
+            const mouseEvent = {
+                clientX: touch.clientX,
+                clientY: touch.clientY
+            };
+            draw(mouseEvent);
+        }
+
+        function handleTouchEnd(e) {
+            e.preventDefault();
+            stopDrawing();
+        }
+
+        // キャンバスクリア
+        function clearCanvas() {
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            hideResult();
+        }
+
+        // 描画チェック
+        function hasDrawing() {
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const data = imageData.data;
+
+            for (let i = 0; i < data.length; i += 4) {
+                const r = data[i];
+                const g = data[i + 1];
+                const b = data[i + 2];
+                if (r < 250 || g < 250 || b < 250) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        // 画像前処理
+        function preprocessCanvas() {
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const data = imageData.data;
+
+            // 描画領域の検出
+            let minX = canvas.width, maxX = 0, minY = canvas.height, maxY = 0;
+            
+            for (let y = 0; y < canvas.height; y++) {
+                for (let x = 0; x < canvas.width; x++) {
+                    const index = (y * canvas.width + x) * 4;
+                    const r = data[index];
+                    const g = data[index + 1];
+                    const b = data[index + 2];
+                    
+                    if (r < 250 || g < 250 || b < 250) {
+                        minX = Math.min(minX, x);
+                        maxX = Math.max(maxX, x);
+                        minY = Math.min(minY, y);
+                        maxY = Math.max(maxY, y);
+                    }
+                }
+            }
+
+            // 余白追加
+            const padding = 20;
+            minX = Math.max(0, minX - padding);
+            maxX = Math.min(canvas.width, maxX + padding);
+            minY = Math.max(0, minY - padding);
+            maxY = Math.min(canvas.height, maxY + padding);
+
+            // トリミング
+            const croppedCanvas = document.createElement('canvas');
+            const croppedWidth = maxX - minX;
+            const croppedHeight = maxY - minY;
+            
+            croppedCanvas.width = croppedWidth;
+            croppedCanvas.height = croppedHeight;
+            
+            const croppedCtx = croppedCanvas.getContext('2d');
+            croppedCtx.fillStyle = '#ffffff';
+            croppedCtx.fillRect(0, 0, croppedWidth, croppedHeight);
+            
+            croppedCtx.drawImage(
+                canvas,
+                minX, minY, croppedWidth, croppedHeight,
+                0, 0, croppedWidth, croppedHeight
+            );
+
+            return croppedCanvas;
+        }
+
+        // 答えチェック
+        async function checkAnswer() {
+            if (!ocrReady) {
+                alert('OCRの準備ができていません。しばらくお待ちください。');
+                return;
+            }
+
+            if (!hasDrawing()) {
+                alert('漢字を書いてください。');
+                return;
+            }
+
+            if (!currentQuestions || currentQuestions.length === 0) {
+                alert('学年を選択してください。');
+                return;
+            }
+
+            showProcessing(true);
+            hideResult();
+
+            try {
+                const processedCanvas = preprocessCanvas();
+                const result = await tesseractWorker.recognize(processedCanvas);
+                
+                const recognizedText = result.data.text.trim();
+                console.log('認識結果:', recognizedText);
+                
+                const cleanedText = recognizedText.replace(/\s+/g, '').replace(/[^\u4e00-\u9faf]/g, '');
+                const correctAnswer = currentQuestions[currentQuestionIndex].kanji;
+                
+                if (cleanedText === correctAnswer) {
+                    score++;
+                    showResult(true, '正解！', correctAnswer);
+                } else {
+                    showResult(false, `不正解。正解は「${correctAnswer}」です。`, cleanedText || '認識できませんでした');
+                }
+                
+                updateDisplay();
+                
+            } catch (error) {
+                console.error('文字認識エラー:', error);
+                showResult(false, '文字認識に失敗しました。文字をもう一度はっきりと書いてください。', '認識エラー');
+            } finally {
+                showProcessing(false);
+            }
+        }
+
+        // 処理中表示
+        function showProcessing(show) {
+            elements.processingSection.style.display = show ? 'block' : 'none';
+            elements.checkBtn.disabled = show;
+        }
+
+        // 結果表示
+        function showResult(isCorrect, feedback, answer) {
+            elements.resultSection.style.display = 'block';
+            elements.resultSection.className = `result-section ${isCorrect ? 'result-correct' : 'result-incorrect'}`;
+            elements.resultFeedback.textContent = feedback;
+            elements.resultAnswer.textContent = `認識結果: ${answer}`;
+            
+            elements.checkBtn.style.display = 'none';
+            elements.nextBtn.style.display = 'inline-flex';
+        }
+
+        // 結果非表示
+        function hideResult() {
+            elements.resultSection.style.display = 'none';
+            elements.checkBtn.style.display = 'inline-flex';
+            elements.nextBtn.style.display = 'none';
+        }
+
+        // 次の問題
+        function nextQuestion() {
+            if (currentQuestionIndex < currentQuestions.length - 1) {
+                currentQuestionIndex++;
+                clearCanvas();
+                updateDisplay();
+            } else {
+                showFinalScore();
+            }
+        }
+
+        // 最終スコア表示
+        function showFinalScore() {
+            const percentage = Math.round((score / currentQuestions.length) * 100);
+            let message = '';
+            
+            if (percentage >= 80) {
+                message = '🎉 素晴らしい！';
+            } else if (percentage >= 60) {
+                message = '👍 良くできました！';
+            } else {
+                message = '💪 もう少し頑張りましょう！';
+            }
+            
+            const gradeText = currentGrade === 0 ? '全学年' : `${currentGrade}年生`;
+            
+            const finalScoreDiv = document.createElement('div');
+            finalScoreDiv.className = 'final-score';
+            finalScoreDiv.innerHTML = `
+                <h3>${message}</h3>
+                <div style="font-size: 1.5em; margin: 15px 0;">
+                    ${gradeText}の漢字テスト<br>
+                    最終スコア: ${score}/${currentQuestions.length} (${percentage}%)
+                </div>
+                <button class="btn btn-next" onclick="resetTest()">
+                    🔄 もう一度挑戦
+                </button>
+                <button class="btn btn-grade" onclick="backToGradeSelection()">
+                    📚 学年選択に戻る
+                </button>
+            `;
+            
+            elements.resultSection.replaceWith(finalScoreDiv);
+            elements.nextBtn.style.display = 'none';
+        }
+
+        // テストリセット
+        function resetTest() {
+            currentQuestionIndex = 0;
+            score = 0;
+            
+            if (currentGrade === 0) {
+                const allKanji = Object.values(kanjiData).flat();
+                currentQuestions = shuffleArray(allKanji).slice(0, 20);
+            } else {
+                currentQuestions = shuffleArray([...kanjiData[currentGrade]]).slice(0, 10);
+            }
+            
+            clearCanvas();
+            updateDisplay();
+            
+            // 最終スコア表示を削除
+            const finalScore = document.querySelector('.final-score');
+            if (finalScore) {
+                finalScore.replaceWith(elements.resultSection);
+            }
+            
+            hideResult();
+        }
+
+        // 表示更新
+        function updateDisplay() {
+            if (!currentQuestions || currentQuestions.length === 0) return;
+            
+            const currentQ = currentQuestions[currentQuestionIndex];
+            
+            elements.currentQuestion.textContent = currentQuestionIndex + 1;
+            elements.totalQuestions.textContent = currentQuestions.length;
+            elements.currentScore.textContent = score;
+            elements.questionReading.textContent = currentQ.reading;
+            elements.questionMeaning.textContent = `意味: ${currentQ.meaning}`;
+            
+            if (currentGrade === 0) {
+                elements.gradeInfo.textContent = '小学校全学年の漢字';
+            } else {
+                elements.gradeInfo.textContent = `小学校${currentGrade}年生の漢字`;
+            }
+        }
+    </script>
+</body>
+</html>
